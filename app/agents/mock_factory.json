@@ -1,0 +1,104 @@
+{
+  "factory_metadata": {
+    "factory_id": "FAC-CA-714",
+    "name": "Titan Automation Assembly Hub",
+    "status": "OPERATIONAL",
+    "last_updated": "2026-06-04T13:20:00Z"
+  },
+  "assembly_lines": [
+    {
+      "line_id": "LINE-A",
+      "name": "Core Controller Assembly",
+      "status": "OPERATIONAL",
+      "target_output_per_hour": 120,
+      "current_output_per_hour": 115,
+      "supervisor": {
+        "id": "EMP-304",
+        "name": "Alex Mercer",
+        "role": "Floor Manager"
+      },
+      "stations": [
+        {
+          "station_id": "ST-A1",
+          "name": "PCB Solder & Inspection",
+          "status": "OPERATIONAL",
+          "cycle_time_seconds": 25,
+          "max_capacity_per_hour": 144,
+          "current_queue_count": 4,
+          "active_errors": []
+        },
+        {
+          "station_id": "ST-A2",
+          "name": "Firmware Flashing",
+          "status": "OPERATIONAL",
+          "cycle_time_seconds": 28,
+          "max_capacity_per_hour": 128,
+          "current_queue_count": 8,
+          "active_errors": []
+        },
+        {
+          "station_id": "ST-A3",
+          "name": "Enclosure Fastening",
+          "status": "OPERATIONAL",
+          "cycle_time_seconds": 31,
+          "max_capacity_per_hour": 116,
+          "current_queue_count": 22,
+          "active_errors": []
+        }
+      ]
+    },
+    {
+      "line_id": "LINE-B",
+      "name": "Sensor Array Integration",
+      "status": "DEGRADED",
+      "target_output_per_hour": 90,
+      "current_output_per_hour": 42,
+      "supervisor": {
+        "id": "EMP-412",
+        "name": "Sarah Chen",
+        "role": "Precision Systems Lead"
+      },
+      "stations": [
+        {
+          "station_id": "ST-B1",
+          "name": "Component Laser Etching",
+          "status": "OPERATIONAL",
+          "cycle_time_seconds": 35,
+          "max_capacity_per_hour": 102,
+          "current_queue_count": 2,
+          "active_errors": []
+        },
+        {
+          "station_id": "ST-B2",
+          "name": "Optics Calibration Bench",
+          "status": "CRITICAL",
+          "cycle_time_seconds": 85,
+          "max_capacity_per_hour": 42,
+          "current_queue_count": 57,
+          "active_errors": [
+            {
+              "error_code": "ERR-CAL-402",
+              "severity": "HIGH",
+              "message": "Optical alignment laser misalignment detected beyond acceptable tolerance.",
+              "timestamp": "2026-06-04T12:45:10Z"
+            }
+          ]
+        },
+        {
+          "station_id": "ST-B3",
+          "name": "Final Quality Assurance Testing",
+          "status": "IDLE",
+          "cycle_time_seconds": 40,
+          "max_capacity_per_hour": 90,
+          "current_queue_count": 0,
+          "active_errors": []
+        }
+      ]
+    }
+  ],
+  "inventory_stock": {
+    "RAW-PCB-01": { "name": "Micro-Controller Blank Boards", "quantity": 1420, "unit": "pcs", "status": "ADEQUATE" },
+    "ENC-POLY-02": { "name": "PETG Molded Enclosures", "quantity": 85, "unit": "pcs", "status": "LOW" },
+    "LENS-OPT-09": { "name": "Quartz Focal Lenses", "quantity": 410, "unit": "pcs", "status": "ADEQUATE" }
+  }
+}
