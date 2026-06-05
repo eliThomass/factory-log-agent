@@ -7,9 +7,11 @@ from contextlib import asynccontextmanager
 # 1. LOAD ENVIRONMENT VARIABLES IMMEDIATELY
 from dotenv import load_dotenv
 load_dotenv()
+print("main.py: 1. LOAD ENVIRONMENT VARIABLES IMMEDIATELY")
 
 from typing import List, Optional, Dict, Any
 from fastapi import FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 # Google ADK Imports 
@@ -24,6 +26,14 @@ app = FastAPI(
     title="Factory Automation Agent API",
     description="Backend API for interacting with the Root Coordinator and Specialized Factory Sub-Agents.",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 APP_NAME = "factory_log_app"
@@ -77,14 +87,29 @@ async def process_agent_request(payload: UserMessage):
     try:
         user_input = payload.text
         session_id = payload.session_id
+        print("main.py: Safely Fetch or Create the Session")
         
-        # 1. Fetch or create your session
+        # Safely Fetch or Create the Session
         try:
-            session_state = session_service.get_session(app_name=APP_NAME, session_id=session_id)
+            # Add 'await' and include 'user_id' so it doesn't throw a TypeError
+            session_state = await session_service.get_session(
+                app_name=APP_NAME, 
+                user_id=DEFAULT_USER_ID, 
+                session_id=session_id
+            )
         except Exception:
+            # If the ADK explicitly raises a 'not found' exception, catch it gracefully
+            session_state = None
+
+        # Only create the session if it actually returned empty
+        if not session_state:
+            print("main.py: Creating new session")
             initial_state = {"factory_db_path": "factory_db.json"}
             session_state = await session_service.create_session(
-                app_name=APP_NAME, user_id=DEFAULT_USER_ID, session_id=session_id, state=initial_state
+                app_name=APP_NAME, 
+                user_id=DEFAULT_USER_ID, 
+                session_id=session_id, 
+                state=initial_state
             )
 
         pipeline_agent = SequentialAgent(
@@ -94,6 +119,7 @@ async def process_agent_request(payload: UserMessage):
         )
         
         # FIX 1: Initialize the ADK Runner to orchestrate the agent
+        print("main.py: FIX 1: Initialize the ADK Runner to orchestrate the agent")
         runner = Runner(
             agent=pipeline_agent,
             session_service=session_service,
@@ -101,9 +127,11 @@ async def process_agent_request(payload: UserMessage):
         )
         
         # FIX 2: Wrap the user's string in ADK's native Content schema
+        print("main.py: FIX 2: Wrap the user's string in ADK's native Content schema")
         user_msg = types.Content(role="user", parts=[types.Part(text=user_input)])
         
         # 3. Fire the execution pipeline via the Runner
+        print("main.py: 3. Fire the execution pipeline via the Runner")
         final_output_text = None
         
         # runner.run_async yields an event stream, so we loop through it to catch the final response
@@ -113,6 +141,7 @@ async def process_agent_request(payload: UserMessage):
             new_message=user_msg
         ):
             if event.is_final_response():
+                print("main.py: Received final response from Runner")
                 final_output_text = event.content.parts[0].text
                 
         if not final_output_text:
@@ -122,8 +151,10 @@ async def process_agent_request(payload: UserMessage):
             )
         
         # 4. Parse the strict JSON string coming out of json_agent
+        print("main.py: 4. Parse the strict JSON string coming out of json_agent")
         try:
             structured_json = json.loads(final_output_text)
+            print("main.py: Successfully parsed JSON output")
             return structured_json
         except (json.JSONDecodeError, AttributeError):
             raise HTTPException(
